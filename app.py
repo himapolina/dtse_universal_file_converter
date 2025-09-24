@@ -34,12 +34,14 @@ if uploaded_files:
         # Initialize the MarkItDown converter
         converter = MarkitDown()
         
-        # Initialize a list to hold the converted text from all files
+        # Initialize a list to hold the converted text and a variable for original size
         full_text_list = []
+        original_size_bytes = 0
         
         # Process each uploaded file
         for uploaded_file in uploaded_files:
             file_extension = uploaded_file.name.split('.')[-1].lower()
+            original_size_bytes += uploaded_file.size
             
             # Check if the file type is supported
             if file_extension not in ALLOWED_FILE_TYPES:
@@ -61,14 +63,42 @@ if uploaded_files:
         # Join all converted text into a single string
         full_text = "\n\n".join(full_text_list)
         
-        # Add a download button for the final markdown file
-        st.download_button(
-            label="Download Converted File",
-            data=full_text,
-            file_name="converted_document.md",
-            mime="text/markdown"
-        )
+        # Calculate the size of the converted text
+        converted_size_bytes = len(full_text.encode('utf-8'))
         
-        # Add an expandable section to show the rendered Markdown
-        with st.expander("Rendered Preview"):
-            st.markdown(full_text)
+        # Create tabs
+        tab1, tab2 = st.tabs(["Download & Preview", "File Size Comparison"])
+
+        with tab1:
+            st.markdown("---")
+            # Add a download button for the final markdown file
+            st.download_button(
+                label="Download Converted File",
+                data=full_text,
+                file_name="converted_document.md",
+                mime="text/markdown"
+            )
+            
+            # Add an expandable section to show the rendered Markdown
+            with st.expander("Rendered Preview"):
+                st.markdown(full_text)
+        
+        with tab2:
+            st.markdown("---")
+            # Convert bytes to megabytes for display
+            original_size_mb = original_size_bytes / (1024 * 1024)
+            converted_size_mb = converted_size_bytes / (1024 * 1024)
+
+            # Calculate the percentage reduction
+            if original_size_mb > 0:
+                reduction_percentage = ((original_size_mb - converted_size_mb) / original_size_mb) * 100
+                st.metric("Percentage Reduction", f"{reduction_percentage:.2f}%", delta="Smaller")
+            
+            # Display the sizes in a clean layout
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Original File Size")
+                st.write(f"{original_size_mb:.2f} MB")
+            with col2:
+                st.subheader("Converted File Size")
+                st.write(f"{converted_size_mb:.2f} MB")
