@@ -32,7 +32,7 @@ if uploaded_files:
     # Show a spinner while processing
     with st.spinner("Converting..."):
         # Initialize the MarkItDown converter
-        converter = MarkitDown()
+        converter = MarkItDown()
         
         # Initialize a list to hold the converted text and a variable for original size
         full_text_list = []
